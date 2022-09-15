@@ -21,6 +21,9 @@
 ## Upcoming Release
 * Supported Web Account Manager (WAM) as the default interactive login experience.
 
+## Version 2.10.1
+* Deduplicated subscriptions belonging to multiple tenants while using `Get-AzSubscription` with parameter `SubscriptionName`. [#19427]
+
 ## Version 2.10.0
 * Supported returning all subscriptions with specified name while using `Get-AzSubscription` with parameter `SubscriptionName`. [#19295]
 * Fixed null reference exception when cmdlet uses AzureRestOperation [#18104]
