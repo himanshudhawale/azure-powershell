@@ -36,18 +36,26 @@ jobs:
     workingDirectory: src/$(ServiceName)
     displayName: Generate
     condition: eq(variables.ServiceSubmoduleName, '')
-  - powershell: |
-      $subModuleFolders =  Get-ChildItem -Directory -Filter *.Autorest
-      if ($subModuleFolders -eq $null) {
-        ./build-module.ps1
-      } else {
-        $subModuleFolders | foreach-object { cd $_.FullName; ./build-module.ps1; cd ..}
-      }
-      mkdir ../../artifacts/src/$env:SERVICENAME
-      cp -r ./* ../../artifacts/src/$env:SERVICENAME
-    workingDirectory: src/$(ServiceName)
+
+  - task: PowerShell@2
     displayName: Build
     condition: eq(variables.ServiceSubmoduleName, '')
+    inputs:
+      targetType: inline
+      script: >-
+        $subModuleFolders =  Get-ChildItem -Directory -Filter *.Autorest
+
+        if ($subModuleFolders -eq $null) {
+          ./build-module.ps1
+        } else {
+          $subModuleFolders | foreach-object { cd $_.FullName; ./build-module.ps1; cd ..}
+        }
+
+        mkdir ../../artifacts/src/$env:SERVICENAME
+
+        cp -r ./* ../../artifacts/src/$env:SERVICENAME
+      pwsh: true
+      workingDirectory: src/$(ServiceName)
   - powershell: |
       mkdir src/$env:SERVICENAME
       git checkout src/$env:SERVICENAME
