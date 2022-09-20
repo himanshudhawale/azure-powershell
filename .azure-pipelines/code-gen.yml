@@ -57,7 +57,10 @@ jobs:
       pwsh: true
       workingDirectory: src/$(ServiceName)
   - powershell: |
-      mkdir src/$env:SERVICENAME
+      if (-not (Test-Path src/$env:SERVICENAME))
+      {
+        mkdir src/$env:SERVICENAME
+      }
       git checkout src/$env:SERVICENAME
       git checkout -b codegen/$env:SERVICENAME origin/$env:BaseBranch
     displayName: Checkout main branch
