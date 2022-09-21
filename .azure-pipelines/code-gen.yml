@@ -9,7 +9,7 @@ resources:
     ref: refs/heads/generation
 jobs:
 - job: Job_1
-  displayName: Service $(SERVICENAME)
+  displayName: "Service ${{ parameters.SERVICENAME }}"
   timeoutInMinutes: 90
   pool:
     name: pool-windows-2019
@@ -80,6 +80,7 @@ jobs:
         Install-Module -Name platyPS -RequiredVersion 0.14.2 -Force;
         Install-Module -Name Az.Accounts -Force;
         Import-Module .\tools\Gen2Master\MoveFromGeneration2Master.ps1;
+        gmo
 
         $subModuleFolders = Get-ChildItem .\artifacts\src\$env:SERVICENAME -Directory -Filter *.Autorest;
         if ($subModuleFolders -eq $null) {
