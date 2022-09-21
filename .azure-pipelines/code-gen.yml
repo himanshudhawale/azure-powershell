@@ -1,12 +1,14 @@
-# Variable 'BaseBranch' was defined in the Variables tab
 # Variable 'BotAccessToken' was defined in the Variables tab
-# Variable 'ServiceName' was defined in the Variables tab
 # Multi-job configuration must be converted to matrix strategy: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/phases?view=azure-devops&tabs=yaml#multi-job-configuration
 parameters:
 - name: ServiceName
   displayName: Service to generate
   type: string
   default: null
+- name: TargetBranch
+  displayName: Branch this module will generated to
+  type: string
+  default: main
 
 resources:
   repositories:
@@ -44,11 +46,9 @@ jobs:
           $subModuleFolders | foreach-object { cd $_.FullName; autorest --max-memory-size=8192};
         }
       workingDirectory: src/${{ parameters.ServiceName }}
-    condition: eq(variables.ServiceSubmoduleName, '')
 
   - task: PowerShell@2
     displayName: Build
-    condition: eq(variables.ServiceSubmoduleName, '')
     inputs:
       targetType: inline
       script: >-
@@ -75,7 +75,7 @@ jobs:
           mkdir src/${{ parameters.ServiceName }};
         }
         git checkout src/${{ parameters.ServiceName }};
-        git checkout -b codegen/${{ parameters.ServiceName }} origin/$env:BaseBranch;
+        git checkout -b codegen/${{ parameters.ServiceName }} origin/${{ parameters.TargetBranch }};
   - task: PowerShell@2
     displayName: Create codegen/${{ parameters.ServiceName }} branch
     inputs:
@@ -86,7 +86,7 @@ jobs:
         Install-Module -Name platyPS -RequiredVersion 0.14.2 -Force;
         Install-Module -Name Az.Accounts -Force;
         Import-Module .\tools\Gen2Master\MoveFromGeneration2Master.ps1;
-        gmo
+        gmo;
 
         $subModuleFolders = Get-ChildItem .\artifacts\src\${{ parameters.ServiceName }} -Directory -Filter *.Autorest;
         if ($subModuleFolders -eq $null) {
@@ -99,8 +99,7 @@ jobs:
         git config user.name "azure-powershell-bot";
         git add ./src;
         git add tools/CreateMappings_rules.json;
-        git commit -m "Move ${{ parameters.ServiceName }} to $env:BaseBranch";
+        git commit -m "Move ${{ parameters.ServiceName }} to ${{ parameters.TargetBranch }}";
         git remote set-url origin https://azure-powershell-bot:$(BotAccessToken)@github.com/Azure/azure-powershell.git;
-        git push origin codegen/${{ parameters.ServiceName }};
-    condition: eq(variables.ServiceSubmoduleName, '')
+        git push origin codegen/${{ parameters.ServiceName }} --force;
 
