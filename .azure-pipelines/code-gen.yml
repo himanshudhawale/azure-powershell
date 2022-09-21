@@ -9,7 +9,7 @@ resources:
     ref: refs/heads/generation
 jobs:
 - job: Job_1
-  displayName: "Service ${{ parameters.SERVICENAME }}"
+  displayName: "Service: ${{ SERVICENAME }}"
   timeoutInMinutes: 90
   pool:
     name: pool-windows-2019
