@@ -1,14 +1,14 @@
 # Variable 'BotAccessToken' was defined in the Variables tab
 # Multi-job configuration must be converted to matrix strategy: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/phases?view=azure-devops&tabs=yaml#multi-job-configuration
 parameters:
-- name: ServiceName
-  displayName: Service to generate
-  type: string
-  default: null
 - name: TargetBranch
   displayName: Branch this module will generated to
   type: string
   default: main
+- name: ServiceName
+  displayName: Service to generate
+  type: string
+  default: null
 
 resources:
   repositories:
@@ -76,34 +76,26 @@ jobs:
         }
         git checkout src/${{ parameters.ServiceName }};
         git checkout -b codegen/${{ parameters.ServiceName }} origin/${{ parameters.TargetBranch }};
-  - task: PowerShell@2
-    displayName: Create codegen/${{ parameters.ServiceName }} branch
-    inputs:
-      targetType: inline
-      script: >-
+  - pwsh: |
         #Uninstall-Module -Name PackageManagement -AllVersions
         Install-Module -Name PowerShellGet -RequiredVersion 2.2.3 -Force;
         Install-Module -Name platyPS -RequiredVersion 0.14.2 -Force;
         Install-Module -Name Az.Accounts -Force;
         Import-Module .\tools\Gen2Master\MoveFromGeneration2Master.ps1;
-        Write-Host "===============================";
-        $a = Get-Module;
-        Write-Host $a;
-        Write-Host "===============================";
 
-        Move-Generation2Master -SourcePath .\artifacts\src\${{ parameters.ServiceName }} -DestPath .\src\${{ parameters.ServiceName }};
-        # $subModuleFolders = Get-ChildItem .\artifacts\src\${{ parameters.ServiceName }} -Directory -Filter *.Autorest;
-        # if ($subModuleFolders -eq $null) {
-        #   Move-Generation2Master -SourcePath .\artifacts\src\${{ parameters.ServiceName }} -DestPath .\src\${{ parameters.ServiceName }};
-        # } else {
-        #   Move-Generation2MasterHybrid -SourcePath .\artifacts\src\${{ parameters.ServiceName }} -DestPath .\src\${{ parameters.ServiceName }};
-        # }
+        $subModuleFolders = Get-ChildItem .\artifacts\src\${{ parameters.ServiceName }} -Directory -Filter *.Autorest;
+        if ($subModuleFolders -eq $null) {
+          Move-Generation2Master -SourcePath .\artifacts\src\${{ parameters.ServiceName }} -DestPath .\src\${{ parameters.ServiceName }};
+        } else {
+          Move-Generation2MasterHybrid -SourcePath .\artifacts\src\${{ parameters.ServiceName }} -DestPath .\src\${{ parameters.ServiceName }};
+        }
 
-        # git config user.email "65331932+azure-powershell-bot@users.noreply.github.com";
-        # git config user.name "azure-powershell-bot";
-        # git add ./src;
-        # git add tools/CreateMappings_rules.json;
-        # git commit -m "Move ${{ parameters.ServiceName }} to ${{ parameters.TargetBranch }}";
-        # git remote set-url origin https://azure-powershell-bot:$(BotAccessToken)@github.com/Azure/azure-powershell.git;
-        # git push origin codegen/${{ parameters.ServiceName }} --force;
+        git config user.email "65331932+azure-powershell-bot@users.noreply.github.com";
+        git config user.name "azure-powershell-bot";
+        git add ./src;
+        git add tools/CreateMappings_rules.json;
+        git commit -m "Move ${{ parameters.ServiceName }} to ${{ parameters.TargetBranch }}";
+        git remote set-url origin https://azure-powershell-bot:$(BotAccessToken)@github.com/Azure/azure-powershell.git;
+        git push origin codegen/${{ parameters.ServiceName }} --force;
+    displayName: Create codegen/${{ parameters.ServiceName }} branch
 
