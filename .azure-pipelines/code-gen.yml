@@ -2,6 +2,12 @@
 # Variable 'BotAccessToken' was defined in the Variables tab
 # Variable 'ServiceName' was defined in the Variables tab
 # Multi-job configuration must be converted to matrix strategy: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/phases?view=azure-devops&tabs=yaml#multi-job-configuration
+parameters:
+- name: ServiceName
+  displayName: Service to generate
+  type: string
+  default: null
+
 resources:
   repositories:
   - repository: self
@@ -9,7 +15,7 @@ resources:
     ref: refs/heads/generation
 jobs:
 - job: Job_1
-  displayName: "Service: ${{ SERVICENAME }}"
+  displayName: "Service: ${{ parameters.ServiceName }}"
   timeoutInMinutes: 90
   pool:
     name: pool-windows-2019
@@ -37,7 +43,7 @@ jobs:
         } else {
           $subModuleFolders | foreach-object { cd $_.FullName; autorest --max-memory-size=8192};
         }
-      workingDirectory: src/$(ServiceName)
+      workingDirectory: src/${{ parameters.ServiceName }}
     condition: eq(variables.ServiceSubmoduleName, '')
 
   - task: PowerShell@2
@@ -54,24 +60,24 @@ jobs:
           $subModuleFolders | foreach-object { cd $_.FullName; ./build-module.ps1; cd ..}
         }
 
-        mkdir ../../artifacts/src/$env:SERVICENAME;
+        mkdir ../../artifacts/src/${{ parameters.ServiceName }};
 
-        cp -r ./* ../../artifacts/src/$env:SERVICENAME;
+        cp -r ./* ../../artifacts/src/${{ parameters.ServiceName }};
       pwsh: true
-      workingDirectory: src/$(ServiceName)
+      workingDirectory: src/${{ parameters.ServiceName }}
   - task: PowerShell@2
     displayName: Checkout main branch
     inputs:
       targetType: inline
       script: >-
-        if (-not (Test-Path src/$env:SERVICENAME))
+        if (-not (Test-Path src/${{ parameters.ServiceName }}))
         {
-          mkdir src/$env:SERVICENAME;
+          mkdir src/${{ parameters.ServiceName }};
         }
-        git checkout src/$env:SERVICENAME;
-        git checkout -b codegen/$env:SERVICENAME origin/$env:BaseBranch;
+        git checkout src/${{ parameters.ServiceName }};
+        git checkout -b codegen/${{ parameters.ServiceName }} origin/$env:BaseBranch;
   - task: PowerShell@2
-    displayName: Create codegen/$(SERVICENAME) branch
+    displayName: Create codegen/${{ parameters.ServiceName }} branch
     inputs:
       targetType: inline
       script: >-
@@ -82,19 +88,19 @@ jobs:
         Import-Module .\tools\Gen2Master\MoveFromGeneration2Master.ps1;
         gmo
 
-        $subModuleFolders = Get-ChildItem .\artifacts\src\$env:SERVICENAME -Directory -Filter *.Autorest;
+        $subModuleFolders = Get-ChildItem .\artifacts\src\${{ parameters.ServiceName }} -Directory -Filter *.Autorest;
         if ($subModuleFolders -eq $null) {
-          Move-Generation2Master -SourcePath .\artifacts\src\$env:SERVICENAME -DestPath .\src\$env:SERVICENAME;
+          Move-Generation2Master -SourcePath .\artifacts\src\${{ parameters.ServiceName }} -DestPath .\src\${{ parameters.ServiceName }};
         } else {
-          Move-Generation2MasterHybrid -SourcePath .\artifacts\src\$env:SERVICENAME -DestPath .\src\$env:SERVICENAME;
+          Move-Generation2MasterHybrid -SourcePath .\artifacts\src\${{ parameters.ServiceName }} -DestPath .\src\${{ parameters.ServiceName }};
         }
 
         git config user.email "65331932+azure-powershell-bot@users.noreply.github.com";
         git config user.name "azure-powershell-bot";
         git add ./src;
         git add tools/CreateMappings_rules.json;
-        git commit -m "Move $env:SERVICENAME to $env:BaseBranch";
+        git commit -m "Move ${{ parameters.ServiceName }} to $env:BaseBranch";
         git remote set-url origin https://azure-powershell-bot:$(BotAccessToken)@github.com/Azure/azure-powershell.git;
-        git push origin codegen/$env:SERVICENAME;
+        git push origin codegen/${{ parameters.ServiceName }};
     condition: eq(variables.ServiceSubmoduleName, '')
 
