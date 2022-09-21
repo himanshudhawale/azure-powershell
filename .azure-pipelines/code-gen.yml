@@ -9,7 +9,7 @@ resources:
     ref: refs/heads/generation
 jobs:
 - job: Job_1
-  displayName: 'Service: '
+  displayName: 'Service: $(SERVICENAME)'
   timeoutInMinutes: 90
   pool:
     name: pool-windows-2019
@@ -85,6 +85,6 @@ jobs:
       git commit -m "Move $env:SERVICENAME to $env:BaseBranch"
       git remote set-url origin https://azure-powershell-bot:$(BotAccessToken)@github.com/Azure/azure-powershell.git
       git push origin codegen/$env:SERVICENAME
-    displayName: Move code to main
+    displayName: Create codegen/$(SERVICENAME) branch
     condition: eq(variables.ServiceSubmoduleName, '')
 
