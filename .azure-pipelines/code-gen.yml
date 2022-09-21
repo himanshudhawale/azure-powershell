@@ -86,23 +86,23 @@ jobs:
         Install-Module -Name platyPS -RequiredVersion 0.14.2 -Force;
         Install-Module -Name Az.Accounts -Force;
         Import-Module .\tools\Gen2Master\MoveFromGeneration2Master.ps1;
-        Write-Host "==============================="
-        $a = Get-Module
-        Write-Host $a;
-        Write-Host "==============================="
+        # Write-Host "==============================="
+        # $a = Get-Module
+        # Write-Host $a;
+        # Write-Host "==============================="
 
-        $subModuleFolders = Get-ChildItem .\artifacts\src\${{ parameters.ServiceName }} -Directory -Filter *.Autorest;
-        if ($subModuleFolders -eq $null) {
-          Move-Generation2Master -SourcePath .\artifacts\src\${{ parameters.ServiceName }} -DestPath .\src\${{ parameters.ServiceName }};
-        } else {
-          Move-Generation2MasterHybrid -SourcePath .\artifacts\src\${{ parameters.ServiceName }} -DestPath .\src\${{ parameters.ServiceName }};
-        }
+        # $subModuleFolders = Get-ChildItem .\artifacts\src\${{ parameters.ServiceName }} -Directory -Filter *.Autorest;
+        # if ($subModuleFolders -eq $null) {
+        #   Move-Generation2Master -SourcePath .\artifacts\src\${{ parameters.ServiceName }} -DestPath .\src\${{ parameters.ServiceName }};
+        # } else {
+        #   Move-Generation2MasterHybrid -SourcePath .\artifacts\src\${{ parameters.ServiceName }} -DestPath .\src\${{ parameters.ServiceName }};
+        # }
 
-        git config user.email "65331932+azure-powershell-bot@users.noreply.github.com";
-        git config user.name "azure-powershell-bot";
-        git add ./src;
-        git add tools/CreateMappings_rules.json;
-        git commit -m "Move ${{ parameters.ServiceName }} to ${{ parameters.TargetBranch }}";
-        git remote set-url origin https://azure-powershell-bot:$(BotAccessToken)@github.com/Azure/azure-powershell.git;
-        git push origin codegen/${{ parameters.ServiceName }} --force;
+        # git config user.email "65331932+azure-powershell-bot@users.noreply.github.com";
+        # git config user.name "azure-powershell-bot";
+        # git add ./src;
+        # git add tools/CreateMappings_rules.json;
+        # git commit -m "Move ${{ parameters.ServiceName }} to ${{ parameters.TargetBranch }}";
+        # git remote set-url origin https://azure-powershell-bot:$(BotAccessToken)@github.com/Azure/azure-powershell.git;
+        # git push origin codegen/${{ parameters.ServiceName }} --force;
 
