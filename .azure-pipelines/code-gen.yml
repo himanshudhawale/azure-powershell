@@ -86,7 +86,10 @@ jobs:
         Install-Module -Name platyPS -RequiredVersion 0.14.2 -Force;
         Install-Module -Name Az.Accounts -Force;
         Import-Module .\tools\Gen2Master\MoveFromGeneration2Master.ps1;
-        gmo;
+        Write-Host "==============================="
+        $a = Get-Module
+        Write-Host $a;
+        Write-Host "==============================="
 
         $subModuleFolders = Get-ChildItem .\artifacts\src\${{ parameters.ServiceName }} -Directory -Filter *.Autorest;
         if ($subModuleFolders -eq $null) {
