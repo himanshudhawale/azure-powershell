@@ -9,7 +9,11 @@ Function Move-Generation2Master {
     process {
         #Region Handle the hybrid module whoes folder is a subfolder of the module folder.
         $ModuleName = $SourcePath.Replace('/', '\').Split('\src\')[1].Split('\')[0]
+        Write-Host "============================="
+        Write-Host $ModuleName
         $SourcePsd1Path = Get-ChildItem -path $SourcePath -filter Az.$ModuleName.psd1 -Recurse
+        Write-Host $SourcePsd1Path
+        Write-Host "============================="
         $FolderPathRelativeToSrc = $SourcePsd1Path.Directory.FullName.Replace('/', '\').Split('\src\')[1]
         if ($FolderPathRelativeToSrc -eq $ModuleName) {
             $IsHybridModule = $False
